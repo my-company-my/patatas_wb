@@ -3,15 +3,6 @@
 
 > Abra esta pagina en [https://my-company-my.github.io/patatas_wb/](https://my-company-my.github.io/patatas_wb/)
 
-## Usar como extensión
-
-Este repositorio puede ser añadido como una **extensión** en MakeCode.
-
-* abra [https://arcade.makecode.com/](https://arcade.makecode.com/)
-* haga clic en **New Project**
-* haga clic en **Extensiones** en el menú del engranaje
-* buscar **https://github.com/my-company-my/patatas_wb** e importar
-
 ## Edita este proyecto
 
 Para editar este repositorio en MakeCode.
