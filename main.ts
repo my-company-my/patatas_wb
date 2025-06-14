@@ -1,19 +1,34 @@
-let nivel: number;
+let times: number[];
 let ls: number;
-let rc: number;
 let psm: number[];
+let rc: number;
+let ver = "0.1.1 BETA"
 //  Show loading text
-let cidk = textsprite.create("Cargando")
+let cidk = textsprite.create("Cargando (" + ver + ")")
+cidk.x = 80
 pause(1)
 music.play(music.createSong(assets.song`title`), music.PlaybackMode.LoopingInBackground)
+//  Tiempos por nivel en listas (índice 0 → nivel 1, índice 4 → nivel 5)
+let times_easy = [30, 35, 30, 25, 45]
+let times_normal = [24, 30, 26, 20, 40]
+let times_hard = [13, 22, 19, 15, 35]
 //  Ask level
-if (controller.A.isPressed()) {
-    nivel = -1
-} else {
-    nivel = game.askForNumber("¿Cual nivel?", 1)
+let dif = null
+story.showPlayerChoices("Normal", "Facil", "Dificil")
+while (!dif) {
+    console.log(dif)
+    dif = story.getLastAnswer()
+}
+console.log(dif)
+if (dif == "Normal") {
+    times = times_normal
+} else if (dif == "Facil") {
+    times = times_easy
+} else if (dif == "Dificil") {
+    times = times_hard
 }
 
-//  Example: Detect left/right wall collision for "player" sprite
+let nivel = game.askForNumber("¿Cual nivel?", 1)
 function itws(sprite: Sprite, k: number): boolean {
     //  Get sprite position in tile coordinates
     let col = Math.idiv(sprite.x, 16)
@@ -41,8 +56,8 @@ if (nivel == 1) {
     `)
     ls = 13
     //  coins/lives
-    rc = 24
-    //  timer
+    // rc = int(levs[dif][0])  # timer
+    // rc = 24
     psm = [30]
     music.play(music.createSong(assets.song`back1`), music.PlaybackMode.LoopingInBackground)
 } else if (nivel == 2) {
@@ -80,6 +95,7 @@ if (nivel == 1) {
     ls = 3
     psm = [-30, 50, 70, 90, 110, 30, 150, 170, 100, 300, 500]
     rc = 40
+    music.play(music.createSong(assets.song`back5`), music.PlaybackMode.LoopingInBackground)
 } else if (nivel == 9) {
     tiles.setCurrentTilemap(tilemap`
         test
@@ -95,6 +111,7 @@ if (nivel == 1) {
     game.reset()
 }
 
+rc = times[nivel - 1]
 pause(1)
 //  UI
 let timercount = textsprite.create("" + rc)
@@ -169,20 +186,13 @@ timer.background(function update_ui() {
     while (true) {
         timercount.setPosition(scene.cameraProperty(CameraProperty.X) - 68, scene.cameraProperty(CameraProperty.Y) - 50)
         patatacount.setPosition(scene.cameraProperty(CameraProperty.X) + 68, scene.cameraProperty(CameraProperty.Y) - 50)
-        pause(50)
+        pause(120)
     }
 })
 //  Movement and win logic
 timer.background(function controller_loop() {
     
     while (true) {
-        if (ls == 0) {
-            music.stopAllSounds()
-            music.play(music.createSong(assets.song`win`), music.PlaybackMode.InBackground)
-            game.splash("Has ganao")
-            game.reset()
-        }
-        
         playersprite.vx = controller.dx(controller.B.isPressed() ? 3750 : 2200)
         pause(10)
     }
@@ -198,6 +208,7 @@ timer.background(function countdown() {
             music.stopAllSounds()
             music.play(music.createSong(assets.song`lose`), music.PlaybackMode.InBackground)
             game.splash("Has perdido")
+            music.stopAllSounds()
             game.reset()
         }
         
@@ -259,6 +270,14 @@ timer.background(function enmydel2() {
 timer.background(function collect_coins() {
     
     while (true) {
+        if (ls == 0) {
+            music.stopAllSounds()
+            music.play(music.createSong(assets.song`win`), music.PlaybackMode.InBackground)
+            game.splash("Has ganao")
+            music.stopAllSounds()
+            game.reset()
+        }
+        
         for (let c of rscoins_ins) {
             if (playersprite.overlapsWith(c)) {
                 sprites.destroy(c)
@@ -276,6 +295,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function on_overlap(sprit
     music.stopAllSounds()
     music.play(music.createSong(assets.song`lose`), music.PlaybackMode.InBackground)
     game.splash("Has perdido")
+    music.stopAllSounds()
     game.reset()
 })
 //  Check if on ground using tile collision

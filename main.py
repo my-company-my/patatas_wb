@@ -1,14 +1,32 @@
+ver = "0.1.1 BETA"
+
 # Show loading text
-cidk = textsprite.create("Cargando")
+cidk = textsprite.create("Cargando (" + ver + ")")
+cidk.x = 80
 pause(1)
 music.play(music.create_song(assets.song("""title""")),music.PlaybackMode.LOOPING_IN_BACKGROUND)
 
+# Tiempos por nivel en listas (índice 0 → nivel 1, índice 4 → nivel 5)
+times_easy   = [30, 35, 30, 25, 45]
+times_normal = [24, 30, 26, 20, 40]
+times_hard   = [13, 22, 19, 15, 35]
+
 # Ask level
-if controller.A.is_pressed():
-    nivel = -1
-else:
-    nivel = game.ask_for_number("¿Cual nivel?", 1)
-# Example: Detect left/right wall collision for "player" sprite
+dif = None
+story.show_player_choices("Normal", "Facil", "Dificil")
+while not dif:
+    print(dif)
+    dif = story.get_last_answer()
+print(dif)
+
+if dif == "Normal":
+    times = times_normal
+elif dif == "Facil":
+    times = times_easy
+elif dif == "Dificil":
+    times = times_hard
+
+nivel = game.ask_for_number("¿Cual nivel?", 1)
 
 def itws(sprite: Sprite, k: number) -> bool:
     # Get sprite position in tile coordinates
@@ -34,7 +52,10 @@ if nivel == 1:
         nivel1
     """))
     ls = 13  # coins/lives
-    rc = 24  # timer
+    #rc = int(levs[dif][0])  # timer
+    #rc = 24
+    
+
     psm = [30]
     music.play(music.create_song(assets.song("""back1""")),music.PlaybackMode.LOOPING_IN_BACKGROUND)
 elif nivel == 2:
@@ -69,6 +90,8 @@ elif nivel == 5:
     ls = 3
     psm = [-30, 50, 70, 90, 110, 30, 150, 170,100,300,500]
     rc = 40
+    music.play(music.create_song(assets.song("""back5""")),music.PlaybackMode.LOOPING_IN_BACKGROUND)
+
 elif nivel == 9:
     tiles.set_current_tilemap(tilemap("""
         test
@@ -80,7 +103,7 @@ elif nivel == 9:
 else:
     game.splash("Nivel no válido")
     game.reset()
-
+rc = times[nivel-1]
 pause(1)
 
 # UI
@@ -162,19 +185,13 @@ def update_ui():
                                 scene.camera_property(CameraProperty.Y) - 50)
         patatacount.set_position(scene.camera_property(CameraProperty.X) + 68,
                                  scene.camera_property(CameraProperty.Y) - 50)
-        pause(50)
+        pause(120)
 timer.background(update_ui)
 
 # Movement and win logic
 def controller_loop():
     global ls
     while True:
-        if ls == 0:
-            music.stop_all_sounds()
-            music.play(music.create_song(assets.song("""win""")),music.PlaybackMode.IN_BACKGROUND)
-
-            game.splash("Has ganao")
-            game.reset()
         playersprite.vx = controller.dx(3750 if controller.B.is_pressed() else 2200)
         pause(10)
 timer.background(controller_loop)
@@ -188,11 +205,9 @@ def countdown():
         timercount.set_text(str(rc))
         if rc < 0 and ls > 0:
             music.stop_all_sounds()
-                        
             music.play(music.create_song(assets.song("""lose""")),music.PlaybackMode.IN_BACKGROUND)
             game.splash("Has perdido")
-            
-
+            music.stop_all_sounds()
             game.reset()
 timer.background(countdown)
 
@@ -238,6 +253,12 @@ timer.background(enmydel2)
 def collect_coins():
     global ls
     while True:
+        if ls == 0:
+            music.stop_all_sounds()
+            music.play(music.create_song(assets.song("""win""")),music.PlaybackMode.IN_BACKGROUND)
+            game.splash("Has ganao")
+            music.stop_all_sounds()
+            game.reset()
         for c in rscoins_ins:
             if playersprite.overlaps_with(c):
                 sprites.destroy(c)
@@ -256,6 +277,7 @@ def on_overlap(sprite, otherSprite):
     music.stop_all_sounds()
     music.play(music.create_song(assets.song("""lose""")),music.PlaybackMode.IN_BACKGROUND)
     game.splash("Has perdido")
+    music.stop_all_sounds()
     game.reset()
 sprites.on_overlap(SpriteKind.player, SpriteKind.enemy, on_overlap)
 # Check if on ground using tile collision
